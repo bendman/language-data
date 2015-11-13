@@ -12,11 +12,35 @@ function parseReadFile(store, callback, err, data) {
 
     store.raw = data;
 
-    store.dict = data.split('\n\n').map(formatDefinition)
+    // Entries are double-space separated
+    store.dict = data.split('\n\n').map(formatEntry);
 
-    if (typeof callback === 'function') callback(store);
+    if (typeof callback === 'function') callback(err, store.dict);
 }
+function formatEntry(entry) {
+    var parts = entry.split('\n');
+    var headword = parts.shift();
 
-readDict('./dict/fr-en.dict');
+    // Extract pronunciation guide
+    var ipaMatch = headword.match(/\[([^\]]+)\]/);
+    var pronunciation = null;
+    if (ipaMatch && ipaMatch.index && ipaMatch[1]) {
+        headword = headword.slice(0, ipaMatch.index).trim();
+        pronunciation = ipaMatch[1];
+    }
+    return {
+        headword: headword,
+        pronunciation: pronunciation,
+        // Translations are newline separated
+        translations: parts.map(function(translation) {
+            if (typeof translation === 'string') {
+                return translation.trim();
+            } else {
+                console.error('problem with headword', headword);
+                return null;
+            }
+        })
+    };
+}
 
 module.exports = readDict;
