@@ -17,6 +17,15 @@ function parseReadFile(store, callback, err, data) {
 
     if (typeof callback === 'function') callback(err, store.dict);
 }
+/**
+ * Format a combined string entry into entry parts
+ * @param  {string} entry A string taking the form of:
+ *
+ * headword [pronunciation]
+ *      translation1; translation2
+ *
+ * @return {object}       entry object broken into parts
+ */
 function formatEntry(entry) {
     var parts = entry.split('\n');
     var headword = parts.shift();
@@ -28,11 +37,13 @@ function formatEntry(entry) {
         headword = headword.slice(0, ipaMatch.index).trim();
         pronunciation = ipaMatch[1];
     }
+
     return {
         headword: headword,
         pronunciation: pronunciation,
         // Translations are newline separated
         translations: parts.map(function(translation) {
+            // TODO: check for semicolon/comma delimited translations
             if (typeof translation === 'string') {
                 return translation.trim();
             } else {
